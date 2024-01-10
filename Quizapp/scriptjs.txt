@@ -1,0 +1,170 @@
+const quizData = [
+  {
+        question: 'Expansion of js?',
+        options: ['java', 'javascript', 'ajp', 'java'],
+        answer: 'javascript',
+      },
+      {
+        question: 'Who invented java script?',
+        options: ['Brendan Eich', 'chaerles', 'thomas', 'einstein'],
+        answer: 'Brendan Eich',
+      },
+      {
+        question: 'js first appeared on?',
+        options: [' December 4, 1995', 'jan 5 1999', 'feb 14 1803', 'june 12 1888'],
+        answer: 'December 4, 1995',
+      },
+  ];
+  
+  const quizContainer = document.getElementById('quiz');
+  const resultContainer = document.getElementById('result');
+  const submitButton = document.getElementById('submit');
+  const retryButton = document.getElementById('retry');
+  const showAnswerButton = document.getElementById('showAnswer');
+  const timerElement = document.getElementById('timer');
+  
+  let currentQuestion = 0;
+  let score = 0;
+  let incorrectAnswers = [];
+  let timeRemaining = 40; 
+  
+  let timerInterval;
+  function shuffleArray(array) {
+   for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+  }
+  
+  function startTimer() {
+    timerInterval = setInterval(updateTimer, 1000);
+  }
+  
+  function updateTimer() {
+    timerElement.textContent = `Time left: ${timeRemaining} seconds`;
+    timeRemaining--;
+  
+    if (timeRemaining < 0) {
+      clearInterval(timerInterval);
+      timeRemaining = 40;
+      checkAnswer();
+    }
+  }
+  
+  function displayQuestion() {
+   const questionData = quizData[currentQuestion];
+    
+      const questionElement = document.createElement('div');
+      questionElement.className = 'question';
+      questionElement.innerHTML = questionData.question;
+    
+      const optionsElement = document.createElement('div');
+      optionsElement.className = 'options';
+    
+      const shuffledOptions = [...questionData.options];
+      shuffleArray(shuffledOptions);
+    
+      for (let i = 0; i < shuffledOptions.length; i++) {
+        const option = document.createElement('label');
+        option.className = 'option';
+    
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'quiz';
+        radio.value = shuffledOptions[i];
+    
+        const optionText = document.createTextNode(shuffledOptions[i]);
+    
+        option.appendChild(radio);
+        option.appendChild(optionText);
+        optionsElement.appendChild(option);
+      }
+    
+      quizContainer.innerHTML = '';
+      quizContainer.appendChild(questionElement);
+      quizContainer.appendChild(optionsElement);
+    startTimer(); // Start timer when displaying new question
+  }
+  
+  function checkAnswer() {
+    clearInterval(timerInterval); // Clear timer when checking answer
+   const selectedOption = document.querySelector('input[name="quiz"]:checked');
+      if (selectedOption) {
+        const answer = selectedOption.value;
+        if (answer === quizData[currentQuestion].answer) {
+          score++;
+        } else {
+          incorrectAnswers.push({
+            question: quizData[currentQuestion].question,
+            incorrectAnswer: answer,
+            correctAnswer: quizData[currentQuestion].answer,
+          });
+        }
+        currentQuestion++;
+        selectedOption.checked = false;
+        if (currentQuestion < quizData.length) {
+          displayQuestion();
+        } else {
+          displayResult();
+        }
+      }
+    }
+  
+    timeRemaining = 40;
+    if (currentQuestion < quizData.length) {
+      displayQuestion();
+    } else {
+      displayResult();
+    }
+  
+    function displayResult() {
+      quizContainer.style.display = 'none';
+      submitButton.style.display = 'none';
+      retryButton.style.display = 'inline-block';
+      showAnswerButton.style.display = 'inline-block';
+      resultContainer.innerHTML = `You scored ${score} out of ${quizData.length}!`;
+    }
+    
+    function retryQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      incorrectAnswers = [];
+      quizContainer.style.display = 'block';
+      submitButton.style.display = 'inline-block';
+      retryButton.style.display = 'none';
+      showAnswerButton.style.display = 'none';
+      resultContainer.innerHTML = '';
+      displayQuestion();
+    }
+    
+    function showAnswer() {
+      quizContainer.style.display = 'none';
+      submitButton.style.display = 'none';
+      retryButton.style.display = 'inline-block';
+      showAnswerButton.style.display = 'none';
+    
+      let incorrectAnswersHtml = '';
+      for (let i = 0; i < incorrectAnswers.length; i++) {
+        incorrectAnswersHtml += `
+          <p>
+            <strong>Question:</strong> ${incorrectAnswers[i].question}<br>
+            <strong>Your Answer:</strong> ${incorrectAnswers[i].incorrectAnswer}<br>
+            <strong>Correct Answer:</strong> ${incorrectAnswers[i].correctAnswer}
+          </p>
+        `;
+      }
+    
+      resultContainer.innerHTML = `
+        <p>You scored ${score} out of ${quizData.length}!</p>
+        <p>Incorrect Answers:</p>
+        ${incorrectAnswersHtml}
+      `;
+    }
+  
+  
+  submitButton.addEventListener('click', checkAnswer);
+  retryButton.addEventListener('click', retryQuiz);
+  showAnswerButton.addEventListener('click', showAnswer);
+  
+  displayQuestion();
+  
